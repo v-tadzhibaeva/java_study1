@@ -1,155 +1,245 @@
 package fourlesson;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Cross {
 
-    static final int SIZE_X = 5;
     static final int SIZE_Y = 5;
-    static final char PLAYER_DOT = 'X';
-    static final char AI_DOT = 'O';
+    static final int SIZE_X = 5;
+    static final int SIZE_WIN = 4;
+    static final char[][] fieldg = new char[SIZE_Y][SIZE_X];
+
+    static final char player_DOT = 'X';
+    static final char Ai_DOT = 'O';
     static final char EMPTY_DOT = '.';
-    static final Random rand;
-    static char[][] field = new char[5][5];
-    static Scanner scanner;
 
-    public Cross() {
-    }
+    static Scanner scr = new Scanner(System.in);
+    static Random rnd = new Random();
 
-    public static void initField() {
-        for (int i = 0; i < SIZE_X; ++i) {
-            for (int j = 0; j < SIZE_Y; ++j) {
-                field[i][j] = '.';
+    private static void emtpyField() {
+        for (int i = 0; i < SIZE_Y; i++) {
+            for (int j = 0; j < SIZE_X; j++) {
+                fieldg[i][j] = EMPTY_DOT;
             }
         }
-
     }
 
-    public static void PrintField() {
-        System.out.println("-------");
+    private static void printBorder() {
+        System.out.print("  -");
+        for (int i = 0; i < 10; i++) System.out.print("-");
+        System.out.println();
+    }
 
-        for (int i = 0; i < SIZE_X; ++i) {
-            System.out.print("|");
-
-            for (int j = 0; j < SIZE_Y; ++j) {
-                System.out.print(field[i][j] + "|");
+    private static void printField() {
+        System.out.print("   ");
+        for (int i = 0; i < SIZE_X; i++) System.out.print("" + (i + 1) + " ");
+        System.out.println();
+        printBorder();
+        for (int i = 0; i < SIZE_Y; i++) {
+            System.out.print("" + (i + 1) + " |");
+            for (int j = 0; j < SIZE_X; j++) {
+                System.out.print(fieldg[i][j] + "|");
             }
-
             System.out.println();
         }
-
-        System.out.println("-------");
+        printBorder();
     }
 
-    public static void setSym(int y, int x, char sym) {
-        field[y][x] = sym;
-    }
-
-    public static void playerStep() throws IOException {
-        int x;
-        int y;
-        System.out.println("Введите координаты: X (1 - " + SIZE_X + "): ");
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        x = Integer.parseInt(br.readLine()) - 1;
-        System.out.println("Введите координаты: Y (1 - " + SIZE_X + "): ");
-        y = Integer.parseInt(br.readLine()) - 1;
-        while (field[x][y] == '0' || field[x][y] == 'X' || x < 0 || x > 2
-                || y < 0 || y > 2) {
-            System.out.println("Enter x:");
-            x = Integer.parseInt(br.readLine()) - 1;
-            System.out.println("Enter y:");
-            y = Integer.parseInt(br.readLine()) - 1;
+    private static void printFieldLine() {
+        for (int i = 0; i < fieldg.length * 2 + 1; i++) {
+            System.out.print("  -");
         }
-        field[x][y] = 'X';
+        System.out.println();
     }
 
-    public static boolean isCellValid(int y, int x) {
-        if (x >= 0 && y >= 0 && x <= 2 && y <= 2) {
-            return field[y][x] == '.';
-        } else {
-            return false;
-        }
+    private static void dotField(int y, int x, char dot) {
+        fieldg[y][x] = dot;
     }
 
-    public static boolean isFieldFull() {
-        for (int i = 0; i < SIZE_X; ++i) {
-            for (int j = 0; j < SIZE_Y; ++j) {
-                if (field[i][j] == '.') {
-                    return false;
+    private static void playerMove() {
+        int x, y;
+        do {
+            System.out.println("Координаты вашего хода в диапозоне от 1 до " + SIZE_X);
+            System.out.print("Введите координату строки: ");
+            y = scr.nextInt() - 1;
+            System.out.print("Введите координату столбца: ");
+            x = scr.nextInt() - 1;
+
+        } while (checkMove(y, x));
+        dotField(y, x, player_DOT);
+    }
+
+    private static void AiMove() {
+        int x, y;
+        if (check(player_DOT)) return;
+        if (check(Ai_DOT)) return;
+
+        do {
+            y = rnd.nextInt(SIZE_Y);
+            x = rnd.nextInt(SIZE_X);
+        } while (checkMove(y, x));
+        dotField(y, x, Ai_DOT);
+    }
+
+    private static boolean check(char ai_dot) {
+        for (int a = 0; a < SIZE_Y; a++) {
+            for (int b = 0; b < SIZE_X; b++) {
+                if (b + SIZE_WIN <= SIZE_X) {
+                    if (checkLineHorisont(a, b, ai_dot) == SIZE_WIN - 1) {
+                        if (MoveAiLineHorisont(a, b)) return true;
+                    }
+
+                    if (a - SIZE_WIN > -2) {
+                        if (checkDiaUp(a, b, ai_dot) == SIZE_WIN - 1) {
+                            if (MoveAiDiaUp(a, b)) return true;
+                        }
+                    }
+                    if (a + SIZE_WIN <= SIZE_Y) {
+                        if (checkDiaDown(a, b, ai_dot) == SIZE_WIN - 1) {
+                            if (MoveAiDiaDown(a, b)) return true;
+                        }
+                    }
+                }
+                if (a + SIZE_WIN <= SIZE_Y) {
+                    if (checkLineVertical(a, b, ai_dot) == SIZE_WIN - 1) {
+                        if (MoveAiLineVertical(a, b)) return true;
+                    }
                 }
             }
         }
+        return false;
+    }
 
+    private static boolean MoveAiLineVertical(int a, int b) {
+        for (int i = a; i < SIZE_WIN; i++) {
+            if ((fieldg[i][b] == EMPTY_DOT)) {
+                fieldg[i][b] = Cross.Ai_DOT;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean MoveAiLineHorisont(int a, int b) {
+        for (int j = b; j < SIZE_WIN; j++) {
+            if ((fieldg[a][j] == EMPTY_DOT)) {
+                fieldg[a][j] = Cross.Ai_DOT;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean MoveAiDiaDown(int a, int b) {
+
+        for (int i = 0; i < SIZE_WIN; i++) {
+            if ((fieldg[i + a][i + b] == EMPTY_DOT)) {
+                fieldg[i + a][i + b] = Cross.Ai_DOT;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean MoveAiDiaUp(int a, int b) {
+        for (int i = 0, j = 0; j < SIZE_WIN; i--, j++) {
+            if ((fieldg[a + i][b + j] == EMPTY_DOT)) {
+                fieldg[a + i][b + j] = Cross.Ai_DOT;
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private static boolean checkMove(int y, int x) {
+        if (x < 0 || x >= SIZE_X || y < 0 || y >= SIZE_Y) return true;
+        else return !(fieldg[y][x] == EMPTY_DOT);
+    }
+
+    private static boolean fullField() {
+        for (int i = 0; i < SIZE_Y; i++) {
+            for (int j = 0; j < SIZE_X; j++) {
+                if (fieldg[i][j] == EMPTY_DOT) return false;
+            }
+        }
+        System.out.println("Ничья");
         return true;
     }
 
-    public static boolean checkWin(char sym) {
-        if (field[0][0] == sym && field[0][1] == sym && field[0][2] == sym) {
-            return true;
-        } else if (field[1][0] == sym && field[1][1] == sym && field[1][2] == sym) {
-            return true;
-        } else if (field[2][0] == sym && field[2][1] == sym && field[2][2] == sym) {
-            return true;
-        } else if (field[0][0] == sym && field[1][0] == sym && field[2][0] == sym) {
-            return true;
-        } else if (field[0][1] == sym && field[1][1] == sym && field[2][1] == sym) {
-            return true;
-        } else if (field[0][2] == sym && field[1][2] == sym && field[2][2] == sym) {
-            return true;
-        } else if (field[0][0] == sym && field[1][1] == sym && field[2][2] == sym) {
-            return true;
-        } else {
-            return field[2][0] == sym && field[1][1] == sym && field[0][2] == sym;
+    private static boolean checkWin(char dot) {
+        for (int a = 0; a < SIZE_Y; a++) {
+            for (int b = 0; b < SIZE_X; b++) {
+                if (b + SIZE_WIN <= SIZE_X) {
+                    if (checkLineHorisont(a, b, dot) >= SIZE_WIN) return true;
+
+                    if (a - SIZE_WIN > -2) {
+                        if (checkDiaUp(a, b, dot) >= SIZE_WIN) return true;
+                    }
+                    if (a + SIZE_WIN <= SIZE_Y) {
+                        if (checkDiaDown(a, b, dot) >= SIZE_WIN) return true;
+                    }
+                }
+                if (a + SIZE_WIN <= SIZE_Y) {
+                    if (checkLineVertical(a, b, dot) >= SIZE_WIN) return true;
+                }
+            }
         }
+        return false;
     }
 
-    public static void aiStep() {
-        int x;
-        int y;
-        do {
-            x = rand.nextInt(SIZE_X);
-            y = rand.nextInt(SIZE_Y);
-        } while (!isCellValid(y, x));
+    private static int checkDiaUp(int a, int b, char dot) {
+        int count = 0;
+        for (int i = 0, j = 0; j < SIZE_WIN; i--, j++) {
+            if ((fieldg[a + i][b + j] == dot)) count++;
+        }
+        return count;
+    }
 
-        setSym(y, x, 'O');
+    private static int checkDiaDown(int a, int b, char dot) {
+        int count = 0;
+        for (int i = 0; i < SIZE_WIN; i++) {
+            if ((fieldg[i + a][i + b] == dot)) count++;
+        }
+        return count;
+    }
+
+    private static int checkLineHorisont(int a, int b, char dot) {
+        int count = 0;
+        for (int j = b; j < SIZE_WIN + b; j++) {
+            if ((fieldg[a][j] == dot)) count++;
+        }
+        return count;
+    }
+
+    private static int checkLineVertical(int a, int b, char dot) {
+        int count = 0;
+        for (int i = a; i < SIZE_WIN + a; i++) {
+            if ((fieldg[i][b] == dot)) count++;
+        }
+        return count;
     }
 
     public static void main(String[] args) {
-        initField();
-        PrintField();
-
-        while (true) {
-            playerStep();
-            PrintField();
-            if (checkWin('X')) {
-                System.out.println("Player WIN");
+        emtpyField();
+        printField();
+        do {
+            playerMove();
+            System.out.println("Ваш ход");
+            printField();
+            if (checkWin(player_DOT)) {
+                System.out.println("Вы победили");
                 break;
-            }
-
-            if (isFieldFull()) {
-                System.out.println("DRAW");
-            }
-
-            aiStep();
-            PrintField();
-            if (checkWin('O')) {
-                System.out.println("SkyNet WIN");
+            } else if (fullField()) break;
+            AiMove();
+            System.out.println("Ход Компа");
+            printField();
+            if (checkWin(Ai_DOT)) {
+                System.out.println("Компьютер победил");
                 break;
-            }
-
-            if (isFieldFull()) {
-                System.out.println("DRAW");
-            }
-        }
-
+            } else if (fullField()) break;
+        } while (true);
+        System.out.println("!Игра завершена!");
     }
-
-static {
-        scanner=new Scanner(System.in);
-        rand=new Random();
-        }
-        }
+}
