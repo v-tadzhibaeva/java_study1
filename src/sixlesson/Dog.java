@@ -8,12 +8,12 @@ public class Dog extends Animal {
 
     @Override
     public boolean run(int normativeRun) {
-        return ((canJump - normativeRun) >= 0);
+        return ((canRun - normativeRun) >= 0);
     }
 
     @Override
     public boolean jump(double normativeJump) {
-        return ((canRun - normativeJump) >= 0);
+        return ((canJump - normativeJump) >= 0);
     }
 
     @Override

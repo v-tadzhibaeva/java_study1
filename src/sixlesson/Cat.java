@@ -7,8 +7,8 @@ public class Cat extends Animal {
     }
 
     @Override
-    public boolean run(int normativeDistance) {
-        return ((canRun - normativeDistance) >= 0);
+    public boolean run(int normativeRun) {
+        return ((canRun - normativeRun) >= 0);
     }
 
     @Override
