@@ -13,6 +13,21 @@ public abstract class Animal implements Run, Jump, Swim {
         this.canSwim = canSwim;
     }
 
+    @Override
+    public boolean run(int normativeRun) {
+        return ((canRun - normativeRun) >= 0);
+    }
+
+    @Override
+    public boolean jump(double normativeJump) {
+        return ((canJump - normativeJump) >= 0);
+    }
+
+    @Override
+    public boolean swim(int normativeSwim) {
+        return ((canSwim - normativeSwim) >= 0);
+    }
+
     public String getName() {
         return name;
     }
